@@ -22,29 +22,27 @@
 
 function [ Best_Fmatrix, inliers_a, inliers_b] = ransac_fundamental_matrix(matches_a, matches_b)
 
-ptsPerItr = 8;
-maxInliers = 0;
-errThreshold = 0.05;
-% % Rushmore: 0.02
-% % woodruff: 0.05
-% % NotreDame: 0.05
-% % Gaudi: 0.05
+ptsPerItr = 8;          #pontos selecionados em cada iteracao  
+maxInliers = 0;         #melhores pontos inLayers 0 para iniciar
+errThreshold = 0.05;    #erro
+numIterations = 1000;   #numero de iteracoes
 
-Best_Fmatrix = zeros(3,3);
-xa = [matches_a ones(size(matches_a,1),1)];
-xb = [matches_b ones(size(matches_b,1),1)];
 
-for i = 1:1000
-    ind = randi(size(matches_a,1), [ptsPerItr,1]);
-    FmatrixEstimate = estimate_fundamental_matrix(matches_a(ind,:), matches_b(ind,:));   
-    err = sum((xb .* (FmatrixEstimate * xa')'),2);
-    currentInliers = size( find(abs(err) <= errThreshold) , 1);
-    if (currentInliers > maxInliers)
-       Best_Fmatrix = FmatrixEstimate; 
+
+Best_Fmatrix = zeros(3,3);                    #alocando melhor matriz com 0
+xa = [matches_a ones(size(matches_a,1),1)];   
+xb = [matches_b ones(size(matches_b,1),1)];   
+
+for i = 1:numIterations                                 #iniciando iteracoes
+    ind = randi(size(matches_a,1), [ptsPerItr,1]);      #selecionando pontos aleatorios 
+    FmatrixEstimate = estimate_fundamental_matrix(matches_a(ind,:), matches_b(ind,:)); #estimando a matriz fundamental  
+    err = sum((xb .* (FmatrixEstimate * xa')'),2);      #calculando o erro da matriz fundamental
+    currentInliers = size( find(abs(err) <= errThreshold) , 1);   #numeros de pontos inLayer na atual matriz fundamental 
+                                                                  #se o valor absoluto do erro e menor que o  
+                                                                  
+    if (currentInliers > maxInliers)    #se houver mais ponstos corretos entao a nova matriz e atualizada
+       Best_Fmatrix = FmatrixEstimate;    
        maxInliers = currentInliers;
-       %[I,J]  = find(abs(err) <= errThreshold);
-       %inliers_a = matches_a(I,:);
-       %inliers_b = matches_b(I,:);
     end    
 end
 
